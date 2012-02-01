@@ -1,0 +1,11 @@
+# Eclipse Project files
+#.classpath
+#.project
+.settings/
+
+# OS X generated files
+.DS_Store
+
+# Grails/MVN files
+target
+web-app/WEB-INF
