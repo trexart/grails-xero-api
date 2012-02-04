@@ -9,3 +9,4 @@
 # Grails/MVN files
 target
 web-app/WEB-INF
+*.log
