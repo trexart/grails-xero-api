@@ -97,6 +97,7 @@ class XeroInvoiceService {
         }
 
         String url = API_URL + "?where=" + where.encodeAsURL()
+        log.debug 'url: ' + url
         RESTClient restClient = new RESTClient( url )
         restClient.auth.oauth key, secret, oauthKey, oauthSecret
 
@@ -128,6 +129,7 @@ class XeroInvoiceService {
                         contact = new XeroContact()
                         contact.id = it.Contact.ContactID
                         contact.name = it.Contact.Name
+                        contact.email = it.Contact.EmailAddress
                         contact.status = it.Contact.ContactStatus
                         //contact.supplier = it.Contact.IsSupplier
                         //contact.customer = it.Contact.IsCustomer

@@ -12,6 +12,7 @@ package org.grails.plugins.xeroapi
 class XeroContact {
 	String id
     String name
+    String email
     boolean supplier
     boolean customer
     String status
