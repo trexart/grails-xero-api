@@ -8,6 +8,7 @@ class XeroController {
 
     def auth() { 
         log.debug "Prepare for open authorisation..."
+        log.debug params
         
         final def errorController = params?.error_controller ?: session?.cbparams?.error_controller
         final def errorAction = params?.error_action ?: session?.cbparams?.error_action
