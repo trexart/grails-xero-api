@@ -8,6 +8,7 @@ class XeroController {
 
     def auth() { 
         log.debug "Prepare for open authorisation..."
+        log.debug "Printing params: "
         log.debug params
         
         final def errorController = params?.error_controller ?: session?.cbparams?.error_controller
@@ -27,6 +28,7 @@ class XeroController {
 
 
             def token = xeroOauthService?.fetchRequestToken()
+            log.debug "Got token: " + token
             session[OAUTH_SESSION_KEY] = token
 
             log.debug "Stored token to session: ${session[OAUTH_SESSION_KEY]}"
