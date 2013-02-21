@@ -8,8 +8,9 @@ package org.grails.plugins.xeroapi
 import org.codehaus.groovy.grails.commons.ConfigurationHolder as CH
 import grails.converters.*
 
-import groovyx.net.http.RESTClient
-import groovyx.net.http.HttpResponseException
+import uk.co.desirableobjects.oauth.scribe.OauthService
+
+import org.scribe.model.Token
 
 /**
  *
@@ -21,47 +22,40 @@ class XeroInvoiceService {
     
     boolean transactional = false
     
-    String oauthKey
-    String oauthSecret
+    OauthService oauthService
+    Token oauthToken
     
-    def setAuth(String key, String secret) {
-        oauthKey = key
-        oauthSecret = secret
+    def setAuth(Token token) {
+        oauthToken = token
     }
 
     def getAll() throws XeroUnauthorizedException, XeroException {
         String key = CH.config.xero.key.toString()
         String secret = CH.config.xero.secret.toString()
         def invoices = []
-        
-        RESTClient restClient = new RESTClient( API_URL )
-        restClient.auth.oauth key, secret, oauthKey, oauthSecret
-        
-        try {
-            def resp = restClient.get(requestContentType: 'application/json',
-                contentType: 'application/json' ){ resp, json ->
 
-                if( resp.status == 200 ) {
-                    //println(json)
+        def resp = oauthService.getXeroResource(oauthToken, API_URL, null, ['Content-Type':'application/json', 'Accept':'application/json'])
+        //log.debug(resp.getCode())
 
-                    def invoice
+        if( resp.getCode() == 200 ) {
+            //log.debug(resp.getBody())
 
-                    json.Invoices.each {  // iterate over JSON 'status' object in the response:
-                    	//println(it)
-                        invoice = new XeroInvoice()
-                        invoice.id = it.InvoiceID
-                        invoice.invoiceNumber = it.InvoiceNumber
+            def json = JSON.parse(resp.getBody())
 
-                        invoices.add(invoice)
-                    }
-                } else {
-                    println resp.dump()
-                }
+            def invoice
+
+            json.Invoices.each {  // iterate over JSON 'status' object in the response:
+                //println(it)
+                invoice = new XeroInvoice()
+                invoice.id = it.InvoiceID
+                invoice.invoiceNumber = it.InvoiceNumber
+
+                invoices.add(invoice)
             }
-        }
-        catch( HttpResponseException ex ) { 
-            println ex.response.dump()
-            switch (ex.response.status) {
+        } else {
+            log.debug(resp.getBody())
+
+            switch (resp.getCode()) {
                 case 400: 
                     throw new XeroBadRequestException()
                     break
@@ -98,54 +92,51 @@ class XeroInvoiceService {
 
         String url = API_URL + "?where=" + where.encodeAsURL()
         log.debug 'url: ' + url
-        RESTClient restClient = new RESTClient( url )
-        restClient.auth.oauth key, secret, oauthKey, oauthSecret
 
-        if(modifiedSince != null) {
-        	def outFormat = new java.text.SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss" )
-        	outFormat.timeZone = java.util.TimeZone.getTimeZone( 'GMT' )
-        	log.debug 'modified date in local time: ' + modifiedSince.format("yyyy-MM-dd'T'HH:mm:ss")
-        	log.debug 'modified date in GMT: ' + outFormat.format(modifiedSince)
-        	restClient.headers["If-Modified-Since"] = outFormat.format(modifiedSince)
-        }
-        
-        try {
-            def resp = restClient.get(requestContentType: 'application/json',
-                contentType: 'application/json' ){ resp, json ->
 
-                if( resp.status == 200 ) {
-                    //println(json)
 
-                    def invoice
-                    def contact
+        /*if(modifiedSince != null) {
+            def outFormat = new java.text.SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss" )
+            outFormat.timeZone = java.util.TimeZone.getTimeZone( 'GMT' )
+            log.debug 'modified date in local time: ' + modifiedSince.format("yyyy-MM-dd'T'HH:mm:ss")
+            log.debug 'modified date in GMT: ' + outFormat.format(modifiedSince)
+            restClient.headers["If-Modified-Since"] = outFormat.format(modifiedSince)
+        }*/
 
-                    json.Invoices.each {  // iterate over JSON 'status' object in the response:
-                    	//println(it)
-                        invoice = new XeroInvoice()
-                        invoice.id = it.InvoiceID
-                        invoice.invoiceNumber = it.InvoiceNumber
-                        invoice.status = it.Status
+        def resp = oauthService.getXeroResource(oauthToken, url, null, ['Content-Type':'application/json', 'Accept':'application/json'])
+        //log.debug(resp.getCode())
 
-                        contact = new XeroContact()
-                        contact.id = it.Contact.ContactID
-                        contact.name = it.Contact.Name
-                        contact.email = it.Contact.EmailAddress
-                        contact.status = it.Contact.ContactStatus
-                        //contact.supplier = it.Contact.IsSupplier
-                        //contact.customer = it.Contact.IsCustomer
+        if( resp.getCode() == 200 ) {
+            //log.debug(resp.getBody())
 
-                        invoice.contact = contact
+            def json = JSON.parse(resp.getBody())
 
-                        invoices.add(invoice)
-                    }
-                } else {
-                    println resp.dump()
-                }
+            def invoice
+            def contact
+
+            json.Invoices.each {  // iterate over JSON 'status' object in the response:
+                //println(it)
+                invoice = new XeroInvoice()
+                invoice.id = it.InvoiceID
+                invoice.invoiceNumber = it.InvoiceNumber
+                invoice.status = it.Status
+
+                contact = new XeroContact()
+                contact.id = it.Contact.ContactID
+                contact.name = it.Contact.Name
+                contact.email = it.Contact.EmailAddress
+                contact.status = it.Contact.ContactStatus
+                //contact.supplier = it.Contact.IsSupplier
+                //contact.customer = it.Contact.IsCustomer
+
+                invoice.contact = contact
+
+                invoices.add(invoice)
             }
-        }
-        catch( HttpResponseException ex ) { 
-            println ex.response.dump()
-            switch (ex.response.status) {
+        } else {
+            log.debug(resp.getBody())
+
+            switch (resp.getCode()) {
                 case 400: 
                     throw new XeroBadRequestException()
                     break

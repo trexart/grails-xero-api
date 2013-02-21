@@ -29,11 +29,12 @@ grails.project.dependency.resolution = {
 
         // runtime 'mysql:mysql-connector-java:5.1.5'
         // compile 'org.codehaus.groovy.modules.http-builder:http-builder:0.5.0'
-        compile('org.codehaus.groovy.modules.http-builder:http-builder:0.5.2') {
+        /*compile('org.codehaus.groovy.modules.http-builder:http-builder:0.5.2') {
             excludes "commons-logging", "xml-apis", "groovy"
         } 
         runtime 'oauth.signpost:signpost-core:1.2.1.1'
-        runtime 'oauth.signpost:signpost-commonshttp4:1.2.1.1'
+        runtime 'oauth.signpost:signpost-commonshttp4:1.2.1.1'*/
+        compile 'org.scribe:scribe:1.3.2'
     }
 
     plugins {
@@ -41,5 +42,6 @@ grails.project.dependency.resolution = {
               ":release:1.0.0") {
             export = false
         }
+        compile ':oauth:2.0.1'
     }
 }
