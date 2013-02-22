@@ -165,17 +165,17 @@ class XeroInvoiceService {
         String secret = CH.config.xero.secret.toString()
         def invoices = []
         //FullyPaidOnDate >= DateTime(2011, 10, 01)
-        String where = 'FullyPaidOnDate >= DateTime(' + paidSince.year + ', ' + paidSince.month + ', ' + paidSince.date + ')'
+        String where = 'FullyPaidOnDate >= DateTime(' + (paidSince.year+1900) + ', ' + (paidSince.month) + ', ' + paidSince.date + ')'
         log.debug 'where: ' + where
 
         String url = API_URL + "?where=" + where.encodeAsURL()
         log.debug 'url: ' + url
 
         def resp = oauthService.getXeroResource(oauthToken, url, null, ['Content-Type':'application/json', 'Accept':'application/json'])
-        //log.debug(resp.getCode())
+        log.debug(resp.getCode())
 
         if( resp.getCode() == 200 ) {
-            //log.debug(resp.getBody())
+            log.debug(resp.getBody())
 
             def json = JSON.parse(resp.getBody())
 
