@@ -159,4 +159,72 @@ class XeroInvoiceService {
         
         return invoices
     }
+
+    def getAllPaidSince(Date paidSince) throws XeroException {
+        String key = CH.config.xero.key.toString()
+        String secret = CH.config.xero.secret.toString()
+        def invoices = []
+        //FullyPaidOnDate >= DateTime(2011, 10, 01)
+        String where = 'FullyPaidOnDate >= DateTime(' + paidSince.year + ', ' + paidSince.month + ', ' + paidSince.date + ')'
+        log.debug 'where: ' + where
+
+        String url = API_URL + "?where=" + where.encodeAsURL()
+        log.debug 'url: ' + url
+
+        def resp = oauthService.getXeroResource(oauthToken, url, null, ['Content-Type':'application/json', 'Accept':'application/json'])
+        //log.debug(resp.getCode())
+
+        if( resp.getCode() == 200 ) {
+            //log.debug(resp.getBody())
+
+            def json = JSON.parse(resp.getBody())
+
+            def invoice
+            def contact
+
+            json.Invoices.each {  // iterate over JSON 'status' object in the response:
+                //println(it)
+                invoice = new XeroInvoice()
+                invoice.id = it.InvoiceID
+                invoice.invoiceNumber = it.InvoiceNumber
+                invoice.status = it.Status
+
+                contact = new XeroContact()
+                contact.id = it.Contact.ContactID
+                contact.name = it.Contact.Name
+                contact.email = it.Contact.EmailAddress
+                contact.status = it.Contact.ContactStatus
+                //contact.supplier = it.Contact.IsSupplier
+                //contact.customer = it.Contact.IsCustomer
+
+                invoice.contact = contact
+
+                invoices.add(invoice)
+            }
+        } else {
+            log.debug(resp.getBody())
+
+            switch (resp.getCode()) {
+                case 400: 
+                    throw new XeroBadRequestException()
+                    break
+                case 401:
+                    throw new XeroUnauthorizedException()
+                    break
+                /*case 404:
+                    // throw new XeroNotFoundException
+                    //break
+                case 501:
+                    // throw new XeroNotImplementedException
+                    
+                case 503:
+                    // throw new XeroNotAvailableException*/
+                default:
+                    throw new XeroException()
+                
+            }
+        }
+        
+        return invoices
+    }
 }
