@@ -165,7 +165,7 @@ class XeroInvoiceService {
         String secret = CH.config.xero.secret.toString()
         def invoices = []
         //FullyPaidOnDate >= DateTime(2011, 10, 01)
-        String where = 'FullyPaidOnDate >= DateTime(' + (paidSince.year+1900) + ', ' + (paidSince.month) + ', ' + paidSince.date + ')'
+        String where = 'FullyPaidOnDate >= DateTime(' + (paidSince.year+1900) + ', ' + (paidSince.month+1) + ', ' + paidSince.date + ')'
         log.debug 'where: ' + where
 
         String url = API_URL + "?where=" + where.encodeAsURL()
