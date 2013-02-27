@@ -13,6 +13,8 @@ class XeroException extends Exception {
 	// Declare exception properties
     final String message
 
+    public XeroException(){}
+
     /**
     * Constructor.
     *

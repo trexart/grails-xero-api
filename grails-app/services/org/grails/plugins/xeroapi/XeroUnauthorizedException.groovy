@@ -10,6 +10,8 @@ package org.grails.plugins.xeroapi
  * @author steph
  */
 class XeroUnauthorizedException extends XeroException {
+
+	XeroUnauthorizedException() { }
 	
 }
 
