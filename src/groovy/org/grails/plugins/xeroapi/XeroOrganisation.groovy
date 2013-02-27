@@ -10,6 +10,7 @@ package org.grails.plugins.xeroapi
  * @author steph
  */
 class XeroOrganisation {
+    String apiKey
 	String name
     String legalName
     String organisationType

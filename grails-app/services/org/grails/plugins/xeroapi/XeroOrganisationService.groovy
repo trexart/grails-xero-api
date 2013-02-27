@@ -42,6 +42,7 @@ class XeroOrganisationService {
 
             def json = JSON.parse(resp.getBody())
 
+            org.apiKey = json.Organisations[0].APIKey
             org.name = json.Organisations[0].Name
             org.legalName = json.Organisations[0].LegalName
             org.paysTax = json.Organisations[0].PaysTax
