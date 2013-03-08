@@ -1,6 +1,5 @@
 package org.grails.plugins.xeroapi
 
-import org.codehaus.groovy.grails.commons.ConfigurationHolder as CH
 import grails.converters.*
 
 import uk.co.desirableobjects.oauth.scribe.OauthService
@@ -9,7 +8,6 @@ import org.scribe.model.Token
 
 class XeroContactService {
 	final static String API_URL = "https://api.xero.com/api.xro/2.0/Contacts"
-    final static String REQUEST = "Contacts"
     
     boolean transactional = false
     
@@ -20,12 +18,20 @@ class XeroContactService {
         oauthToken = token
     }
 
-    def getAll() throws XeroUnauthorizedException, XeroException {
-        String key = CH.config.xero.key.toString()
-        String secret = CH.config.xero.secret.toString()
+    def getAll(Date modifiedSince = null) throws XeroUnauthorizedException, XeroException {
         def contacts = []
 
-        def resp = oauthService.getXeroResource(oauthToken, API_URL, null, ['Content-Type':'application/json', 'Accept':'application/json'])
+        def headers = ['Content-Type':'application/json', 'Accept':'application/json']
+
+        if(modifiedSince != null) {
+            def outFormat = new java.text.SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss" )
+            outFormat.timeZone = java.util.TimeZone.getTimeZone( 'GMT' )
+            log.debug 'modified date in local time: ' + modifiedSince.format("yyyy-MM-dd'T'HH:mm:ss")
+            log.debug 'modified date in GMT: ' + outFormat.format(modifiedSince)
+            headers["If-Modified-Since"] = outFormat.format(modifiedSince)
+        }
+
+        def resp = oauthService.getXeroResource(oauthToken, API_URL, null, headers)
         //log.debug(resp.getCode())
 
         if( resp.getCode() == 200 ) {
@@ -58,14 +64,9 @@ class XeroContactService {
                 case 401:
                     throw new XeroUnauthorizedException()
                     break
-                /*case 404:
-                    // throw new XeroNotFoundException
-                    //break
-                case 501:
-                    // throw new XeroNotImplementedException
-                    
                 case 503:
-                    // throw new XeroNotAvailableException*/
+                    throw new XeroNotAvailableException()
+                    break
                 default:
                     throw new XeroException()
                 
@@ -75,9 +76,7 @@ class XeroContactService {
         return contacts
     }
 
-    def getAllCustomers() throws XeroUnauthorizedException, XeroException {
-        String key = CH.config.xero.key.toString()
-        String secret = CH.config.xero.secret.toString()
+    def getAllCustomers(Date modifiedSince = null) throws XeroUnauthorizedException, XeroException {
         def contacts = []
 
         String where = 'IsCustomer==true'
@@ -85,7 +84,17 @@ class XeroContactService {
         String url = API_URL + "?where=" + where.encodeAsURL()
         log.debug 'url: ' + url
 
-        def resp = oauthService.getXeroResource(oauthToken, url, null, ['Content-Type':'application/json', 'Accept':'application/json'])
+        def headers = ['Content-Type':'application/json', 'Accept':'application/json']
+
+        if(modifiedSince != null) {
+            def outFormat = new java.text.SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss" )
+            outFormat.timeZone = java.util.TimeZone.getTimeZone( 'GMT' )
+            log.debug 'modified date in local time: ' + modifiedSince.format("yyyy-MM-dd'T'HH:mm:ss")
+            log.debug 'modified date in GMT: ' + outFormat.format(modifiedSince)
+            headers["If-Modified-Since"] = outFormat.format(modifiedSince)
+        }
+
+        def resp = oauthService.getXeroResource(oauthToken, url, null, headers)
         //log.debug(resp.getCode())
 
         if( resp.getCode() == 200 ) {
@@ -118,14 +127,9 @@ class XeroContactService {
                 case 401:
                     throw new XeroUnauthorizedException()
                     break
-                /*case 404:
-                    // throw new XeroNotFoundException
-                    //break
-                case 501:
-                    // throw new XeroNotImplementedException
-                    
                 case 503:
-                    // throw new XeroNotAvailableException*/
+                    throw new XeroNotAvailableException()
+                    break
                 default:
                     throw new XeroException()
                 
