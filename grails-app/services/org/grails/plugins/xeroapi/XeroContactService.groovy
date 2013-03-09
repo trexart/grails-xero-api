@@ -9,6 +9,10 @@ import org.scribe.model.Token
 
 class XeroContactService {
 	final static String API_URL = "https://api.xero.com/api.xro/2.0/Contacts"
+
+    final static def servicePropertyMap = [
+        'customer':'IsCustomer'
+    ]
     
     boolean transactional = false
     
@@ -17,9 +21,9 @@ class XeroContactService {
 
     XeroContactService() {
         // not sure if I have to do this
-        def mc = new ExpandoMetaClass(XeroContactService, false, true)
-        mc.initialize()
-        this.metaClass = mc
+        //def mc = new ExpandoMetaClass(XeroContactService, false, true)
+        //mc.initialize()
+        //this.metaClass = mc
     }
     
     def setAuth(Token token) {
@@ -110,15 +114,17 @@ class XeroContactService {
 
         def xc = new XeroContact()
         String url = API_URL
-
+        
         if(name.startsWith("findAllBy")) {
 
             String instructions = name.replaceAll("findAllBy", "")
 
             Date modifiedSince = null
 
-            if(xc.metaClass.hasProperty(xc, GrailsNameUtils.getPropertyName(instructions))) {
-                String where = 'IsCustomer==' + args[0]
+            String propertyName = GrailsNameUtils.getPropertyName(instructions)
+
+            if(xc.metaClass.hasProperty(xc, propertyName)) {
+                String where = servicePropertyMap[propertyName] + '==' + args[0]
                 url += "?where=" + where.encodeAsURL()
 
                 if(args.size() > 1 && args[1] instanceof Date) {
