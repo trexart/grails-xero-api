@@ -43,7 +43,7 @@ class XeroContactService {
         //log.debug(resp.getCode())
 
         if( resp.getCode() == 200 ) {
-            log.debug(resp.getBody())
+            //log.debug(resp.getBody())
             def json = JSON.parse(resp.getBody())
             contact = fillContact(json.Contacts[0])
 
@@ -96,19 +96,8 @@ class XeroContactService {
     }
 
     def findAll(Date modifiedSince = null) throws XeroUnauthorizedException, XeroException {
-        def contacts = []
 
-        def headers = ['Content-Type':'application/json', 'Accept':'application/json']
-
-        if(modifiedSince != null) {
-            def outFormat = new java.text.SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss" )
-            outFormat.timeZone = java.util.TimeZone.getTimeZone( 'GMT' )
-            log.debug 'modified date in local time: ' + modifiedSince.format("yyyy-MM-dd'T'HH:mm:ss")
-            log.debug 'modified date in GMT: ' + outFormat.format(modifiedSince)
-            headers["If-Modified-Since"] = outFormat.format(modifiedSince)
-        }
-
-        return getListResult(API_URL, headers)
+        return getListResult(API_URL, modifiedSince)
     }
 
     private String getServiceProperty(String propertyName) {
@@ -153,30 +142,30 @@ class XeroContactService {
 
             log.debug("url: ${url}")
 
-            def headers = ['Content-Type':'application/json', 'Accept':'application/json']
-
-            if(modifiedSince != null) {
-                def outFormat = new java.text.SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss" )
-                outFormat.timeZone = java.util.TimeZone.getTimeZone( 'GMT' )
-                log.debug 'modified date in local time: ' + modifiedSince.format("yyyy-MM-dd'T'HH:mm:ss")
-                log.debug 'modified date in GMT: ' + outFormat.format(modifiedSince)
-                headers["If-Modified-Since"] = outFormat.format(modifiedSince)
-            }
-
             // this caches the method, not quite sure how to get it to work though
             // don't think it is exactly correct, needs adjustments
             // doesn't seem to be working
             //this.metaClass."$name" = {-> getListResult(url, headers) }
 
-            return getListResult(url, headers)
+            return getListResult(url, modifiedSince)
 
         } else {
             throw new MissingMethodException(name, this.class, args)       
         }
     }
 
-    private def getListResult(String url, def headers) throws XeroUnauthorizedException, XeroException {
+    private def getListResult(String url, Date modifiedSince = null) throws XeroUnauthorizedException, XeroException {
         def contacts = []
+
+        def headers = ['Content-Type':'application/json', 'Accept':'application/json']
+
+        if(modifiedSince != null) {
+            def outFormat = new java.text.SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss" )
+            outFormat.timeZone = java.util.TimeZone.getTimeZone( 'GMT' )
+            log.debug 'modified date in local time: ' + modifiedSince.format("yyyy-MM-dd'T'HH:mm:ss")
+            log.debug 'modified date in GMT: ' + outFormat.format(modifiedSince)
+            headers["If-Modified-Since"] = outFormat.format(modifiedSince)
+        }
 
         def resp = oauthService.getXeroResource(oauthToken, url, null, headers)
         //log.debug(resp.getCode())
