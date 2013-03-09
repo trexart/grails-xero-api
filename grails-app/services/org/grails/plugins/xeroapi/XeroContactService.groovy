@@ -17,9 +17,9 @@ class XeroContactService {
 
     XeroContactService() {
         // not sure if I have to do this
-        //def mc = new ExpandoMetaClass(XeroContactService, false, true)
-        //mc.initialize()
-        //this.metaClass = mc
+        def mc = new ExpandoMetaClass(XeroContactService, false, true)
+        mc.initialize()
+        this.metaClass = mc
     }
     
     def setAuth(Token token) {
@@ -140,10 +140,13 @@ class XeroContactService {
                 headers["If-Modified-Since"] = outFormat.format(modifiedSince)
             }
 
+            // this caches the method, not quite sure how to get it to work though
+            // don't think it is exactly correct, needs adjustments
+            // doesn't seem to be working
+            //this.metaClass."$name" = {-> getListResult(url, headers) }
+
             return getListResult(url, headers)
 
-            // this caches the method
-            //this.metaClass."$name" = {-> result }
         } else {
             throw new MissingMethodException(name, this.class, args)       
         }
