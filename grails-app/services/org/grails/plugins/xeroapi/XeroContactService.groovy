@@ -74,18 +74,18 @@ class XeroContactService {
         contact.id = it.ContactID
         contact.number = it.ContactNumber
         contact.name = it.Name
-        //contact.firstName = it.FirstName
-        //contact.lastName = it.LastName
+        contact.firstName = it.FirstName
+        contact.lastName = it.LastName
         contact.email = it.EmailAddress
         contact.supplier = it.IsSupplier
         contact.customer = it.IsCustomer
         contact.status = it.ContactStatus
-        //contact.skypeUserName = it.SkypeUserName
-        //contact.bankAccountDetails = it.BankAccountDetails
-        //contact.taxNumber = it.TaxNumber
-        //contact.accountsReceivableTaxType = it.AccountsReceivableTaxType
-        //contact.accountsPayableTaxType = it.AccountsPayableTaxType
-        //contact.defaultCurrency = it.DefaultCurrency
+        contact.skypeUserName = it.SkypeUserName
+        contact.bankAccountDetails = it.BankAccountDetails
+        contact.taxNumber = it.TaxNumber
+        contact.accountsReceivableTaxType = it.AccountsReceivableTaxType
+        contact.accountsPayableTaxType = it.AccountsPayableTaxType
+        contact.defaultCurrency = it.DefaultCurrency
         //contact.updatedDateUTC = it.UpdatedDateUTC
 
         // TODO add addresses
@@ -111,6 +111,14 @@ class XeroContactService {
         return getListResult(API_URL, headers)
     }
 
+    private String getServiceProperty(String propertyName) {
+        if(servicePropertyMap.containsKey(propertyName)) {
+            servicePropertyMap[propertyName]
+        } else {
+            propertyName
+        }
+    }
+
     def methodMissing(String name, args) throws XeroUnauthorizedException, XeroException, MissingMethodException {
         log.debug("methodMissing name: ${name}")
         log.debug("methodMissing args: ${args}")
@@ -127,7 +135,7 @@ class XeroContactService {
             String propertyName = GrailsNameUtils.getPropertyName(instructions)
 
             if(xc.metaClass.hasProperty(xc, propertyName)) {
-                String where = servicePropertyMap[propertyName] + '=='
+                String where = getServiceProperty(propertyName) + '=='
                 if(args[0] instanceof String) {
                     where += "\"${args[0]}\""
                 } else {
