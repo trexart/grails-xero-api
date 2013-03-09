@@ -11,7 +11,8 @@ class XeroContactService {
 	final static String API_URL = "https://api.xero.com/api.xro/2.0/Contacts"
 
     final static def servicePropertyMap = [
-        'customer':'IsCustomer'
+        'customer':'IsCustomer',
+        'supplier':'IsSupplier'
     ]
     
     boolean transactional = false
