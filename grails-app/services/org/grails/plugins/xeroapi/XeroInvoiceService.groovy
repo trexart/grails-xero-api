@@ -18,6 +18,9 @@ import org.scribe.model.Token
  */
 class XeroInvoiceService {
     final static String API_URL = "https://api.xero.com/api.xro/2.0/Invoices"
+
+    final static def servicePropertyMap = [
+    ]
     
     boolean transactional = false
     
@@ -56,6 +59,65 @@ class XeroInvoiceService {
         log.debug 'url: ' + url
 
         return getListResult(url, modifiedSince)
+    }
+
+    private String getServiceProperty(String propertyName) {
+        if(servicePropertyMap.containsKey(propertyName)) {
+            servicePropertyMap[propertyName]
+        } else {
+            propertyName
+        }
+    }
+
+    def methodMissing(String name, args) throws XeroUnauthorizedException, XeroException, MissingMethodException {
+        log.debug("methodMissing name: ${name}")
+        log.debug("methodMissing args: ${args}")
+
+        def xi = new XeroInvoice()
+        String url = API_URL
+        
+        if(name.startsWith("findAllBy")) {
+
+            String instructions = name.replaceAll("findAllBy", "")
+
+            if(instructions.contains("And")) {
+
+            } else {
+
+                Date modifiedSince = null
+
+                String propertyName = GrailsNameUtils.getPropertyName(instructions)
+
+                if(xi.metaClass.hasProperty(xi, propertyName)) {
+                    String where = getServiceProperty(propertyName) + '=='
+                    if(args[0] instanceof String) {
+                        where += "\"${args[0]}\""
+                    } else {
+                        where += args[0]
+                    }
+                     
+                    url += "?where=" + where.encodeAsURL()
+
+                    if(args.size() > 1 && args[1] instanceof Date) {
+                        modifiedSince = args[1]
+                    }
+                } else {
+                    throw new MissingMethodException(name, this.class, args)
+                }
+            }
+
+            log.debug("url: ${url}")
+
+            // this caches the method, not quite sure how to get it to work though
+            // don't think it is exactly correct, needs adjustments
+            // doesn't seem to be working
+            //this.metaClass."$name" = {-> getListResult(url, headers) }
+
+            return getListResult(url, modifiedSince)
+
+        } else {
+            throw new MissingMethodException(name, this.class, args)       
+        }
     }
 
     private def fillInvoice(def it) {
