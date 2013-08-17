@@ -16,9 +16,9 @@ class XeroContactService {
         'email'     : 'EmailAddress',
         'status'    : 'ContactStatus'
     ]
-    
+
     boolean transactional = false
-    
+
     OauthService oauthService
     Token oauthToken
 
@@ -28,7 +28,7 @@ class XeroContactService {
         //mc.initialize()
         //this.metaClass = mc
     }
-    
+
     def setAuth(Token token) {
         oauthToken = token
     }
@@ -51,7 +51,7 @@ class XeroContactService {
             log.debug(resp.getBody())
 
             switch (resp.getCode()) {
-                case 400: 
+                case 400:
                     throw new XeroBadRequestException()
                     break
                 case 401:
@@ -62,7 +62,7 @@ class XeroContactService {
                     break
                 default:
                     throw new XeroException()
-                
+
             }
         }
 
@@ -114,7 +114,7 @@ class XeroContactService {
 
         def xc = new XeroContact()
         String url = API_URL
-        
+
         if(name.startsWith("findAllBy")) {
 
             String instructions = name.replaceAll("findAllBy", "")
@@ -130,7 +130,7 @@ class XeroContactService {
                 } else {
                     where += args[0]
                 }
-                 
+
                 url += "?where=" + where.encodeAsURL()
 
                 if(args.size() > 1 && args[1] instanceof Date) {
@@ -150,7 +150,7 @@ class XeroContactService {
             return getListResult(url, modifiedSince)
 
         } else {
-            throw new MissingMethodException(name, this.class, args)       
+            throw new MissingMethodException(name, this.class, args)
         }
     }
 
@@ -186,7 +186,7 @@ class XeroContactService {
             log.debug(resp.getBody())
 
             switch (resp.getCode()) {
-                case 400: 
+                case 400:
                     throw new XeroBadRequestException()
                     break
                 case 401:
@@ -197,10 +197,10 @@ class XeroContactService {
                     break
                 default:
                     throw new XeroException()
-                
+
             }
         }
-        
+
         return contacts
     }
 }
