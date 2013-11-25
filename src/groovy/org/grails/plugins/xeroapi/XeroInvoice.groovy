@@ -12,6 +12,7 @@ package org.grails.plugins.xeroapi
 class XeroInvoice {
 	String id
     String invoiceNumber
+    String reference
     String type
     Date date
     Date dueDate
@@ -24,8 +25,11 @@ class XeroInvoice {
     BigDecimal amountCredited
     String currencyCode
     String status
+    Boolean discounted
+    Boolean sentToContact
     Date updatedDateUTC
 
+    String brandingThemeId
     XeroContact contact
 }
 

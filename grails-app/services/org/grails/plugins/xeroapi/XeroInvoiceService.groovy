@@ -19,14 +19,13 @@ import org.scribe.model.Token
 class XeroInvoiceService {
     final static String API_URL = "https://api.xero.com/api.xro/2.0/Invoices"
 
-    final static def servicePropertyMap = [
-    ]
-    
+    final static def servicePropertyMap = [:]
+
     boolean transactional = false
-    
+
     OauthService oauthService
     Token oauthToken
-    
+
     def setAuth(Token token) {
         oauthToken = token
     }
@@ -37,7 +36,7 @@ class XeroInvoiceService {
     }
 
     def getAllByType(String type, String status = null, Date modifiedSince = null) throws XeroException {
-        
+
         String where = 'Type=="' + type + '"'
 
         if(status) {
@@ -75,16 +74,16 @@ class XeroInvoiceService {
 
         def xi = new XeroInvoice()
         String url = API_URL
-        
+
         if(name.startsWith("findAllBy")) {
 
             String instructions = name.replaceAll("findAllBy", "")
 
+            Date modifiedSince = null
+
             if(instructions.contains("And")) {
 
             } else {
-
-                Date modifiedSince = null
 
                 String propertyName = GrailsNameUtils.getPropertyName(instructions)
 
@@ -95,7 +94,7 @@ class XeroInvoiceService {
                     } else {
                         where += args[0]
                     }
-                     
+
                     url += "?where=" + where.encodeAsURL()
 
                     if(args.size() > 1 && args[1] instanceof Date) {
@@ -116,23 +115,46 @@ class XeroInvoiceService {
             return getListResult(url, modifiedSince)
 
         } else {
-            throw new MissingMethodException(name, this.class, args)       
+            throw new MissingMethodException(name, this.class, args)
         }
     }
 
-    private def fillInvoice(def it) {
+    private def fillInvoice(def it, boolean listResult) {
+        log.debug(it)
+
+        def inFormat = new java.text.SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss" )
+
         def invoice = new XeroInvoice()
         invoice.id = it.InvoiceID
         invoice.invoiceNumber = it.InvoiceNumber
+        invoice.reference = it.Reference
+        if(it.DateString != null) {
+            invoice.date = inFormat.parse(it.DateString)
+        }
+        if(it.DueDateString != null) {
+            invoice.dueDate = inFormat.parse(it.DueDateString)
+        }
+        invoice.sentToContact = it.SentToContact
+        invoice.currencyCode = it.CurrencyCode
+        invoice.subTotal = it.SubTotal
+        invoice.totalTax = it.TotalTax
+        invoice.total = it.Total
+        invoice.amountPaid = it.AmountPaid
+        invoice.amountDue = it.AmountDue
+        invoice.discounted = it.IsDiscounted
+        invoice.lineAmountTypes = it.LineAmountTypes
         invoice.status = it.Status
+        invoice.brandingThemeId = it.BrandingThemeID
 
         def contact = new XeroContact()
         contact.id = it.Contact.ContactID
         contact.name = it.Contact.Name
-        contact.email = it.Contact.EmailAddress
-        contact.status = it.Contact.ContactStatus
-        //contact.supplier = it.Contact.IsSupplier
-        //contact.customer = it.Contact.IsCustomer
+        if(!listResult) {
+            contact.email = it.Contact.EmailAddress
+            contact.status = it.Contact.ContactStatus
+            //contact.supplier = it.Contact.IsSupplier
+            //contact.customer = it.Contact.IsCustomer
+        }
 
         invoice.contact = contact
 
@@ -164,7 +186,7 @@ class XeroInvoiceService {
 
             json.Invoices.each {  // iterate over JSON 'status' object in the response:
                 //println(it)
-                invoice = fillInvoice(it)
+                invoice = fillInvoice(it, true)
 
                 invoices.add(invoice)
             }
@@ -172,7 +194,7 @@ class XeroInvoiceService {
             log.debug(resp.getBody())
 
             switch (resp.getCode()) {
-                case 400: 
+                case 400:
                     throw new XeroBadRequestException()
                     break
                 case 401:
@@ -183,10 +205,10 @@ class XeroInvoiceService {
                     break
                 default:
                     throw new XeroException()
-                
+
             }
         }
-        
+
         return invoices
     }
 }
